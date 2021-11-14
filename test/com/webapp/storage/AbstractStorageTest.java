@@ -3,12 +3,12 @@ package com.webapp.storage;
 import com.webapp.Config;
 import com.webapp.exception.ExistStorageException;
 import com.webapp.exception.NotExistStorageException;
-import com.webapp.model.ContactType;
-import com.webapp.model.Resume;
+import com.webapp.model.*;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.time.Month;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -37,7 +37,7 @@ public abstract class AbstractStorageTest {
 
         R1.addContact(ContactType.MAIL, "a1@mail.ru");
         R1.addContact(ContactType.PHONE, "212-85-06");
-/*        R1.addSection(SectionType.PERSONAL, new TextSection("Personal Data"));
+        R1.addSection(SectionType.PERSONAL, new TextSection("Personal Data"));
         R1.addSection(SectionType.OBJECTIVE, new TextSection("Objective 1"));
         R1.addSection(SectionType.ACHIEVEMENT, new ListSection("Achievement 1", "Achievement 2", "Achievement 3"));
         R1.addSection(SectionType.QUALIFICATIONS, new ListSection("Java", "SQL", "Perl"));
@@ -53,13 +53,13 @@ public abstract class AbstractStorageTest {
                 ),
                 new Organization("IT Academy", "http://www.itacademy.ru")
         ));
-        */
+
         R2.addContact(ContactType.MAIL, "NumberTwo@rambler.ru");
         R2.addContact(ContactType.SKYPE, "NumberTwo");
-/*        R1.addSection(SectionType.EXPERIENCE, new OrganizationSection(
+        R1.addSection(SectionType.EXPERIENCE, new OrganizationSection(
                 new Organization("NewOrder", "http://www.orderNow.ru",
                         new Organization.Position(2015, Month.APRIL, "first 1", "desc 1"))));
-*/
+
     }
 
     protected AbstractStorageTest(Storage storage) {
@@ -90,6 +90,7 @@ public abstract class AbstractStorageTest {
         Resume newResume = new Resume(UUID_1, "NewName");
         newResume.addContact(ContactType.MAIL, "resume1@google.com");
         newResume.addContact(ContactType.SKYPE, "new Skype");
+        newResume.addSection(SectionType.ACHIEVEMENT,new TextSection("New work for New Year"));
         storage.update(newResume);
         assertTrue(newResume.equals(storage.get(UUID_1)));
     }
