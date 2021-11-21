@@ -37,36 +37,15 @@ public class SqlStorage implements Storage {
 
     @Override
     public void update(Resume r) {
-        sqlHelper.transactionalExecute(new SqlTransaction<Object>() {
-            @Override
-            public Object execute(Connection conn) throws SQLException {
-                try (PreparedStatement ps = conn.prepareStatement("UPDATE resume SET full_name=? WHERE uuid=?")) {
-                    ps.setString(1, r.getFullName());
-                    ps.setString(2, r.getUuid());
-                    if (ps.executeUpdate() != 1) {
-                        throw new NotExistStorageException(r.getUuid());
-                    }
-                    deleteContacts(conn, r);
-                    deleteSections(conn, r);
-                    insertContacts(conn, r);
-                    insertSections(conn, r);
-                    return null;
+        sqlHelper.transactionalExecute(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement("UPDATE resume SET full_name=? WHERE uuid=?")) {
+                ps.setString(1, r.getFullName());
+                ps.setString(2, r.getUuid());
+                if (ps.executeUpdate() != 1) {
+                    throw new NotExistStorageException(r.getUuid());
                 }
-            }
-        });
-    }
-
-
-    @Override
-    public void save(Resume r) {
-        sqlHelper.transactionalExecute(new SqlTransaction<Object>() {
-            @Override
-            public Object execute(Connection conn) throws SQLException {
-                try (PreparedStatement ps = conn.prepareStatement("INSERT INTO resume (uuid, full_name) VALUES (?,?)")) {
-                    ps.setString(1, r.getUuid());
-                    ps.setString(2, r.getFullName());
-                    ps.execute();
-                }
+                deleteContacts(conn, r);
+                deleteSections(conn, r);
                 insertContacts(conn, r);
                 insertSections(conn, r);
                 return null;
@@ -76,49 +55,58 @@ public class SqlStorage implements Storage {
 
 
     @Override
-    public Resume get(String uuid) {
-        return sqlHelper.transactionalExecute(new SqlTransaction<Resume>() {
-            @Override
-            public Resume execute(Connection conn) throws SQLException {
-                Resume resume;
-                try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM resume WHERE uuid= ?")) {
-                    ps.setString(1, uuid);
-                    ResultSet rs = ps.executeQuery();
-                    if (!rs.next()) {
-                        throw new NotExistStorageException(uuid);
-                    }
-                    resume = new Resume(uuid, rs.getString("full_name"));
-                }
-                try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM contact WHERE resume_uuid= ?")) {
-                    ps.setString(1, uuid);
-                    ResultSet rs = ps.executeQuery();
-                    while (rs.next()) {
-                        addContact(rs, resume);
-                    }
-                }
-                try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM section WHERE resume_uuid= ?")) {
-                    ps.setString(1, uuid);
-                    ResultSet rs = ps.executeQuery();
-                    while (rs.next()) {
-                        addSection(rs, resume);
-                    }
-                }
-                return resume;
+    public void save(Resume r) {
+        sqlHelper.transactionalExecute(conn -> {
+            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO resume (uuid, full_name) VALUES (?,?)")) {
+                ps.setString(1, r.getUuid());
+                ps.setString(2, r.getFullName());
+                ps.execute();
             }
+            insertContacts(conn, r);
+            insertSections(conn, r);
+            return null;
+        });
+    }
+
+
+    @Override
+    public Resume get(String uuid) {
+        return sqlHelper.transactionalExecute(conn -> {
+            Resume resume;
+            try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM resume WHERE uuid= ?")) {
+                ps.setString(1, uuid);
+                ResultSet rs = ps.executeQuery();
+                if (!rs.next()) {
+                    throw new NotExistStorageException(uuid);
+                }
+                resume = new Resume(uuid, rs.getString("full_name"));
+            }
+            try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM contact WHERE resume_uuid= ?")) {
+                ps.setString(1, uuid);
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    addContact(rs, resume);
+                }
+            }
+            try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM section WHERE resume_uuid= ?")) {
+                ps.setString(1, uuid);
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    addSection(rs, resume);
+                }
+            }
+            return resume;
         });
     }
 
     @Override
     public void delete(String uuid) {
-        sqlHelper.execute("DELETE FROM resume WHERE uuid=?", new SqlExecutor<Object>() {
-            @Override
-            public Object execute(PreparedStatement ps) throws SQLException {
-                ps.setString(1, uuid);
-                if (ps.executeUpdate() == 0) {
-                    throw new NotExistStorageException(uuid);
-                }
-                return null;
+        sqlHelper.execute("DELETE FROM resume WHERE uuid=?", ps -> {
+            ps.setString(1, uuid);
+            if (ps.executeUpdate() == 0) {
+                throw new NotExistStorageException(uuid);
             }
+            return null;
         });
     }
 

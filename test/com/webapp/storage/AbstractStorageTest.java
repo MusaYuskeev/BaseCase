@@ -10,6 +10,7 @@ import org.junit.Test;
 import java.io.File;
 import java.time.Month;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,7 +52,9 @@ public abstract class AbstractStorageTest {
                         new Organization.Position(1991, Month.JUNE, 1998, Month.JULY, "student", "IT faculty"),
                         new Organization.Position(2021, Month.JUNE, 2021, Month.NOVEMBER, "student", "Java Professional")
                 ),
-                new Organization("IT Academy", "http://www.itacademy.ru")
+                new Organization("IT Academy", "http://www.itacademy.ru",
+                        new Organization.Position(1991, Month.JUNE, 1998, Month.JULY, "student", "Programming language Java")
+                )
         ));
 
         R2.addContact(ContactType.MAIL, "NumberTwo@rambler.ru");
@@ -90,7 +93,7 @@ public abstract class AbstractStorageTest {
         Resume newResume = new Resume(UUID_1, "NewName");
         newResume.addContact(ContactType.MAIL, "resume1@google.com");
         newResume.addContact(ContactType.SKYPE, "new Skype");
-        newResume.addSection(SectionType.ACHIEVEMENT,new TextSection("New work for New Year"));
+        newResume.addSection(SectionType.ACHIEVEMENT,new ListSection("New work for New Year"));
         storage.update(newResume);
         assertTrue(newResume.equals(storage.get(UUID_1)));
     }
@@ -116,6 +119,7 @@ public abstract class AbstractStorageTest {
     public void getAll() throws Exception {
         List<Resume> list = storage.getAllSorted();
         assertEquals(3, list.size());
+        assertEquals(Arrays.asList(R1, R2, R3), list);
         assertEquals(Arrays.asList(R1, R2, R3), list);
     }
 
@@ -145,7 +149,8 @@ public abstract class AbstractStorageTest {
     }
 
     private void assertGet(Resume resume) {
-        assertEquals(resume, storage.get(resume.getUuid()));
+        Resume actual = storage.get(resume.getUuid());
+        assertEquals(resume, actual);
     }
 
     private void assertSize(int size) {

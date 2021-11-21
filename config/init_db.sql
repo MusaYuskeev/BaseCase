@@ -16,12 +16,12 @@ CREATE TABLE IF NOT EXISTS public.contact
     type text COLLATE pg_catalog."default" NOT NULL,
     value text COLLATE pg_catalog."default" NOT NULL,
     resume_uuid character(36) REFERENCES public.resume (uuid) ON DELETE CASCADE NOT NULL,
-    CONSTRAINT contact_pkey PRIMARY KEY (id),
+    CONSTRAINT contact_pkey PRIMARY KEY (id)
 
 
-)
+);
 CREATE INDEX contact_uuid_type_index
     ON public.contact
-    (resume_uuid , type )
-;
+    (resume_uuid , type );
+
 

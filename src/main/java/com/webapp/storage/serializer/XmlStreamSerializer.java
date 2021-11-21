@@ -1,6 +1,5 @@
 package com.webapp.storage.serializer;
 
-import com.webapp.exception.StorageException;
 import com.webapp.model.*;
 import com.webapp.util.XmlParser;
 
